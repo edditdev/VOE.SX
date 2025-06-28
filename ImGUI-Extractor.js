@@ -1,11 +1,8 @@
 (function () {
-  // Załaduj font Montserrat z Google Fonts (jeśli nie załadowany)
   const fontLink = document.createElement('link');
   fontLink.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap';
   fontLink.rel = 'stylesheet';
   document.head.appendChild(fontLink);
-
-  // Style panelu
   const style = document.createElement('style');
   style.textContent = `
     #m3u8-catcher-panel {
@@ -151,13 +148,12 @@
   `;
   document.head.appendChild(style);
 
-  // Stwórz panel
   const panel = document.createElement('div');
   panel.id = 'm3u8-catcher-panel';
   panel.innerHTML = `
     <header>
-      <div>🎬 Przechwycone URL .m3u8</div>
-      <div id="close-btn" title="Zamknij panel">&times;</div>
+      <div>🎬 Captured .m3u8 URLs</div>
+      <div id="close-btn" title="Close panel">&times;</div>
     </header>
     <div id="m3u8-urls-list" aria-live="polite" aria-relevant="additions"></div>
   `;
@@ -167,8 +163,6 @@
   const urlsList = panel.querySelector('#m3u8-urls-list');
 
   closeBtn.onclick = () => panel.remove();
-
-  // Tooltip
   let tooltip;
   function showTooltip(text, x, y) {
     if (!tooltip) {
@@ -183,13 +177,10 @@
     setTimeout(() => tooltip.classList.remove('visible'), 1200);
   }
 
-  // Zbiór unikalnych URL-i
   const seenUrls = new Set();
 
-  // Pobierz tytuł raz
-  const pageTitle = document.title.trim() || 'Nieznany tytuł';
+  const pageTitle = document.title.trim() || 'Unknown title';
 
-  // Dodaj URL do listy
   function addUrl(url) {
     if (!url || !/^https?:\/\/.+\.m3u8/.test(url)) return;
     if (seenUrls.has(url)) return;
@@ -208,15 +199,15 @@
 
     const copyBtn = document.createElement('div');
     copyBtn.className = 'copy-btn';
-    copyBtn.title = 'Kopiuj do schowka';
+    copyBtn.title = 'Copy to clipboard';
     copyBtn.innerHTML = '📋';
 
     copyBtn.onclick = (e) => {
       e.stopPropagation();
       navigator.clipboard.writeText(url).then(() => {
         const rect = copyBtn.getBoundingClientRect();
-        showTooltip('Skopiowano!', rect.left + rect.width / 2, rect.top - 28);
-      }).catch(() => alert('Nie udało się skopiować URL!'));
+        showTooltip('Copied!', rect.left + rect.width / 2, rect.top - 28);
+      }).catch(() => alert('Failed to copy URL!'));
     };
 
     entry.appendChild(titleDiv);
@@ -226,23 +217,21 @@
     entry.onclick = () => {
       navigator.clipboard.writeText(url).then(() => {
         const rect = entry.getBoundingClientRect();
-        showTooltip('Skopiowano!', rect.left + rect.width / 2, rect.top - 28);
-      }).catch(() => alert('Nie udało się skopiować URL!'));
+        showTooltip('Copied!', rect.left + rect.width / 2, rect.top - 28);
+      }).catch(() => alert('Failed to copy URL!'));
     };
 
     urlsList.appendChild(entry);
 
-    // Po pierwszym URL czyścimy konsolę i logujemy info
     if (seenUrls.size === 1) {
       console.clear();
-      console.log(`✅ Przechwycono pierwszy URL .m3u8 i skopiowano:\n${url}`);
+      console.log(`✅ First .m3u8 URL captured and copied:\n${url}`);
       navigator.clipboard.writeText(url).catch(() => {});
     } else {
-      console.log(`ℹ️ Przechwycono URL .m3u8:\n${url}`);
+      console.log(`ℹ️ .m3u8 URL captured:\n${url}`);
     }
   }
 
-  // Hook fetch tylko raz, bez zapętlenia
   if (!window._m3u8CatcherFetchHooked) {
     window._m3u8CatcherFetchHooked = true;
     const originalFetch = window.fetch;
@@ -255,7 +244,6 @@
     };
   }
 
-  // Hook XMLHttpRequest tylko raz
   if (!window._m3u8CatcherXHRHooked) {
     window._m3u8CatcherXHRHooked = true;
     const originalOpen = XMLHttpRequest.prototype.open;
@@ -267,7 +255,6 @@
     };
   }
 
-  // Auto-play bypass - symuluj user gesture na pierwszym video tylko 2 razy
   let autoplayAttempts = 0;
   function tryAutoplay() {
     if (autoplayAttempts > 1) return;
@@ -277,7 +264,6 @@
     if (!vids.length) return;
     const video = vids[0];
 
-    // Generuj eventy user gesture
     ['pointerdown', 'mousedown', 'mouseup', 'click', 'focus'].forEach(evtName => {
       const evt = new Event(evtName, { bubbles: true, cancelable: true });
       video.dispatchEvent(evt);
@@ -285,13 +271,12 @@
     });
 
     video.play().then(() => {
-      console.log('▶️ Wideo auto-odtwarzane po symulacji user gesture.');
+      console.log('▶️ Video auto-played after user gesture simulation.');
     }).catch(e => {
-      console.warn('❌ Auto-play nie udał się:', e);
+      console.warn('❌ Auto-play failed:', e);
     });
   }
 
-  // Spróbuj autoodtwarzania z opóźnieniem
   setTimeout(tryAutoplay, 1000);
   setTimeout(tryAutoplay, 3000);
 })();
